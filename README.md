@@ -4,10 +4,10 @@ A Maxima CAS package for finite model theory
 This package uses Maxima's graph package to 
 1) test whether a given graph is a model of a given first order formula
 2) evaluate non-Boolean queries on graphs
-2) compute least and simultaneous fixed points of first order formulae on graphs
-3) play Ehrenfeucht–Fraïssé games on graphs.
+3) compute least and simultaneous fixed points of first order formulae on graphs
+4) play Ehrenfeucht–Fraïssé games on graphs.
 
-1) test whether a given graph is a model of a given first order formula
+1. test whether a given graph is a model of a given first order formula
 
 To test whether a given graph is a model of a given first order formula, load the file "MaximaLogic",
 
@@ -54,4 +54,5 @@ This reads "There exist vertices y and z such that there's an edge between x and
 We translate the formula to Maxima code,
 
 (%i132) phi : '(exz(y, exz(z, E(x,y) and E(x,z) and y!=z)));
+
 (%o132)        exz(y, exz(z, E(x, y) and E(x, z) and (y != z)))
