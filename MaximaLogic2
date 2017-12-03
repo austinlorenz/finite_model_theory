@@ -1,0 +1,35 @@
+/*Finds moves that cause possible dupe choices to be empty*/
+
+swm(g,h,d,r) := if move_time() > tl then {} else union(swm1(g,h,d,r),swm2(g,h,d,r));
+
+swm1(g,h,d,r) := (for i in SD(|g|,d) do if emptyp(dupechoices(g,h,i++d,r)) then return({i}), if ~setp(%%) then {} else %%);
+
+swm2(g,h,d,r) := (for i in SD(|h|,r) do if emptyp(dupechoices(g,h,d,i++r)) then return({i+||g||}), if ~setp(%%) then {} else %%);
+
+smm(g,h,d,r) := (dn1 : ||g U h||, dn2 : ||g U h||, sn : {}, sm1 : smm1(g,h,d,r), sm2 : smm2(g,h,d,r), if ||g|| > ||h|| then sm1 else sm2);
+
+smm1(g,h,d,r) := (for i in SD(|g|,d) do (cdc : card(dupechoices(g,h,i++d,r)), if cdc < dn1 then (dn1 : cdc, sn : {i})), sn);
+
+smm2(g,h,d,r) := (for i in SD(|h|,r) do (cdc : card(dupechoices(g,h,d,i++r)), if cdc < dn2 then (dn2 : cdc, sn : {i+||g||})), sn);
+
+/*Give spoiler ability to look ahead one move by assuming dupe_chose some v; the output should be the new set of spoiler winning moves for each next choice of dupe*/
+
+dupe_chose(v,g,h,d,r) := if v in |g| then swm(g,h,v++d,r) else swm(g,h,d,adjoin(v - ||g||,r));
+
+/*We map dupe_chose, which tells us new set of spoiler winning moves for each choice of dupe, over possible dupe choices, adding v to the domain or range to test the choice, which tells us if there are winning moves if we add v, for any dupe_chosen vertex*/
+
+spoiler_chose(v,g,h,d,r) := (if v in |g| then d : v++d else r : adjoin(v - ||g||,r), map (lambda ([u], dupe_chose(u,g,h,d,r)), dupechoices(g,h,d,r)));
+
+domrangep(g,h,d,r) := d U vertadd(r,||g||);
+
+swmn(g,h,d,r,n) := if n=1 then swm(g,h,d,r) else (for i in fresh_vertices(g,h,d,r) do if not({} in spchn(i,g,h,d,r,n)) then return({i}), if ~setp(%%) then {} else %%);
+
+spchn(v,g,h,d,r,n) := if n=1 then spoiler_chose(v,g,h,d,r) else (if v in |g| then d : v++d else r : adjoin(v - ||g||,r), map (lambda ([u], dupe_chose(u,g,h,d,r)), gdmvn(g,h,d,r,n-1)));
+
+bdmvn(v,g,h,d,r,n) := (if v in |g| then d : adjoin(v,d) else r : adjoin(v - ||g||,r), not(emptyp(swmn(g,h,d,r,n))));
+
+gdmvn(g,h,d,r,n) := if n = 1 then dupechoices(g,h,d,r) else (gm : gdmvn(g,h,d,r,n-1), subset(gm,lambda([m],not(bdmvn(m,g,h,d,r,n)))));
+
+move_time() := float((floor(elapsed_real_time()) - ert) / 60);
+
+card(s) := cardinality(s);

@@ -1,0 +1,229 @@
+load(graphs);
+
+load(stringproc);
+
+declare(R,noun);
+
+lfp : {};
+
+
+infix ("implies");
+
+"implies"(a,b) := not(a) or b;
+
+infix ("iff");
+
+"iff"(a,b) := (a implies b) and (b implies a);
+
+infix ("!=");
+
+"!="(a,b) := (not a = b);
+
+infix ("?=");
+
+"?="(a,b) := is (a = b);
+
+prefix ("~");
+
+"~"(a) := (not a);
+
+infix ("&");
+
+"&"(a,b) := (a and b);
+
+infix ("..");
+
+".."(a,b) := (makelist(i+1,i,a-1,b-1));
+
+prefix ("~");
+
+"~"(a) := (not a);
+
+infix("in");
+
+"in"(a,b) := member(a, b);
+
+matchfix ("|","|");
+
+| g | := if is_graph(g) or is_digraph(g) then S(vertices(g)) else length(g);
+
+matchfix ("||","||");
+
+|| g || := cardinality(|g|);
+
+infix ("II");
+
+"II"(a,b) := intersection(S(a),S(b));
+
+SD(a,b) := setdifference(S(a),S(b));
+
+infix ("U");
+
+"U"(a,b) := if is_graph(a) then graph_union(a,b) else if is_digraph(a) then dgraph_union(a,b) else union(S(a),S(b));
+
+infix ("++");
+
+"++"(a,b) := cons(a,b);
+
+L(s) := if setp(s) then listify(s) else s;
+
+S(l) := if listp(l) then setify(l) else l;
+
+frp(l) := fst(random_permutation(l));
+
+
+tflist(x,p) := map (lambda ([z], o : bop(p), if quantifier(o) then p : tflist(boundvar(p),second(p)),decide(subst(z,x,p),o)), L(|G|));
+
+decide(z,o) := block([a],if freevarp(z) then return(z), if listp(z) then return(decidel(z,o)), a : is(ev(z,nouns)), if string(a) = "unknown" then return(z) else return(a));
+
+decidel(l,o) := block(if atom(first(l)) then return(quant(o,l)) else (answer : (map (lambda ([z], decide(z,o)), l)), if quantifier(o) then (if decidable(answer) then return(answer) else decide(answer,o)) else return(answer)));
+
+decidable(p) := listp(p) implies atom(fst(p));
+
+exz(x,p) ::= (f : tflist(x,p), if atom(first(f)) then some (is, f) else some(is, decide (f,op(p))));
+
+fa(x,p) ::= (f : tflist(x,p), if atom(first(f)) then every (is, f) else every(is, decide (f,op(p))));
+
+boundvar(p) := first(args(p));
+
+quant(o,l) := block(if (string(o) = "exz" or string(o) = "exists") then return(some (is,l)) else return(every (is,l)));
+
+quantifier(o) := is ((string(o) = "exz") or (string(o) = "fa") or (string(o) = "forall") or (string(o) = "exists"));
+
+
+fst(s) := if length(s) > 0 then first(s) else s;
+
+scnd(s) := if length(s) > 1 then second(s) else fst(s);
+
+thrd(s) := if length(s) > 2 then third(s) else fst(s);
+
+R([l]) := if listp(lfp) then l in fst(lfp) else l in lfp;
+
+unnest(l) := if listp(l) and listp(first(l)) then first(l) else l;
+
+lindex(m,l) := fst(sublist_indices(l,lambda ([u], m ?= u)));
+
+
+uniquefreevars(f) := unique(freevarlist(f));
+
+arity(f) := length(uniquefreevars(f));
+
+E(x,y) := if is_digraph(G) then member (y, out_neighbors(x,G)) else member (x, neighbors(y,G));
+
+cartprod(g,n) := apply(cartesian_product,map(setify,makelist(vertices(g),n)));
+
+freevar(p) := freevarb(p,[]);
+
+freevarp(p) := not(freevarlist(p) = []);
+
+truth_valuep(f) := string(f) = "true" or string(f) = "false";
+
+
+dg(g) := draw_graph(g, show_id = true, redraw=true);
+
+bop(p) := if atom(p) then [] else op(p);
+
+
+EVEN : '((x=0) or exz(y,exz(z,R(y) and succ(y,z) and succ(z,x))));
+
+TC : '(E(x,y) or exz(z,(E(x,z) and R(z,y))));
+
+ADD : '(((y = 0) and (z = x)) or exz(u, exz(v, R(x,u,v) and succ(u,y) and succ(v,z))));
+
+FS : '(exz(u, (R(x,u) and R(u,y)) and T(x,u,y)));
+
+FR : '(E(x,y) or exz(u, (S(x,u) and E(u,y)) and T(x,u,y)));
+
+FT : '((E(x,y) and (x != z) and (y != z)) or exz(u, E(x,u) and T(u,y,z) and (x != z)));
+
+
+atoms(x) := if atom(x) then {x} else atoms(first(args(x))) U atoms(prest(args(x)));
+
+freevarlist(x) := sublist(L(atoms(x)), lambda([u], not (integerp(u) or truth_valuep(u) or (u in boundvars(x)))));
+
+psecond(x) := if |x| > 1 then second(x) else first(x);
+
+prest(x) := if |x| > 2 then rest(x) else psecond(x);
+
+boundvars(x) :=  if atom(x) then {} else (if quantifier(op(x)) then union({first(args(x))}, boundvars(prest(args(x)))) else union(boundvars(first(args(x))), boundvars(prest(args(x)))));
+
+succ(x,y) := (x + 1) = y;
+
+sstage(f) := map (lambda ([u], (stage(freshen(u)))),f);
+
+stage(f) := disjoin(false,union(map(lambda ([u],if FO(f,u) then u), cartprod(G,arity(f)))));
+
+freshen(f) := psubst(map ("=", freevarlist(f), map(lambda([u], gensym(string(u))), freevarlist(f))),f);
+
+FO(f,l) := block(l,map("=",uniquefreevars(f),l),p:psubst((%%),f),ev(p,nouns));
+
+
+LFP(g,f) := (G : g, lfp : {}, unless lfp ?= stage(f) do (lfp : stage(f)),lfp);
+
+SLFP([f]) := (G : first(f), lfp : {}, unless lfp ?= sstage(rest(f)) do (lfp : sstage(rest(f))),fst(lfp));
+
+
+vd(v1,v2,g) := (j : 0,for i from 0 thru diameter(g) unless v2 in r_ball(v1,i,g) do (j : j + 1), if (j > diameter(g)) then inf else j);
+
+r_ball(a,r,g) := if r = 0 then (if integerp(a) then {a} else a) else r_ball(flatten(a++map(lambda([u],setify(neighbors(u,g))),flatten({a}))),r-1,g);
+
+
+drawham(g) := draw_graph(g, show_id = true, redraw=true, show_edges = vertices_to_path(hamilton_path(g)));
+
+drawhc(g) := draw_graph(g,show_id=true,redraw=true,show_edges=vertices_to_path(hamilton_cycle(g)));
+
+
+B(k) := block([h,g],h : create_graph(10,[[0,2],[1,2],[1,3],[2,3],[3,4],[4,5],[4,9],[7,6],[6,5],[8,7],[7,5],[9,8]],directed=false),g:h, for i from 1 thru k do (h: quantum_next(h,g)),h);
+
+BB(i, j) := block([h], h : B(i), for k thru j do h : nxtB(h), h);
+
+nxtB(g) := (y : graph_order(g) - 1, for i thru y do if triangularp(i, g) and (mod(i, 10) in [2, 7]) then vertex_split([i, first(sublist(neighbors(i, g), lambda([u], ~ triangularp(u, g))))], g), g);
+
+triangularp(v, g) := ((vertex_degree(v, g) = 3) or (v = 1) or (v = 6)) and (mod(v, 10) in [1, 2, 3, 5, 6, 7]);
+
+C(x) := block([zz], zz : B(x), add_edges([[graph_order(zz)-10,6],[graph_order(zz)-10,1]],zz),zz);
+
+cyc(k) := block([z,g],z : create_graph(10,[[0,2],[2,1],[1,3],[3,2],[4,3],[4,5],[9,4],[7,6],[5,6],[7,8],[5,7],[8,9]],directed=true),g:z, for i from 1 thru k do (z: quantum_next(z,g)),z);
+
+acyc(k) := block([z],z : create_graph(10,[[0,2],[2,1],[1,3],[2,3],[3,4],[5,4],[9,4],[6,7],[5,6],[7,8],[5,7],[8,9]],directed=true),g:z, for i from 1 thru k do (z: quantum_next(z,g)),z);
+
+quantum_next(x,y) := block([w],w : x U y,quantum_connect_next(w),w);
+
+quantum_connect_next(x) := add_edges([[graph_order(x)-9,graph_order(x)-20],[graph_order(x)-4,graph_order(x)-20]],x);
+
+dgraph_union(c,d) := block([z],z : create_graph(graph_order(c)+graph_order(d),listify(union(setify(edges(c)), setify(map (lambda ([x],[first(x)+graph_order(c),second(x)+graph_order(c)]),edges(d))))), directed=true),z);
+
+
+is_ham(g) := ~emptyp(hamilton_path(g));
+
+coHA(g) := setdifference(cartprod(g,2),subset(setify(edges(g)),lambda([u],HAB(u,g))));
+
+HAB(e,g) := some(is, map(lambda([u],succ(lindex(e[1],u),lindex(e[2],u))),allham(g)));
+
+HA(g) := subset(setify(edges(g)),lambda([u],HAB(u,g)));
+
+preham(g) := sublist (vertices(g),lambda ([x], (h : copy_graph(g), add_vertex(2*graph_order(g),h),add_edge([x,2*graph_order(g)],h), is_ham(h))));
+
+hamx(g,x) := (h : copy_graph(g), add_vertex(2*graph_order(g),h),add_edge([x,2*graph_order(g)],h), rest(hamilton_path(h)));
+
+allham(g) := map (lambda ([x], hamx(g,x)), preham(g));
+
+binary(n) := (ibase : 10, obase : 2, n : string(n), obase : 10, parse_string(n));
+
+decar(n) := (obase : 10, n : string(n), ibase : 10, parse_string(n));
+
+decary(nn) := (ibase : 2, nn : string(nn), decar(parse_string(nn)));
+
+satFO(f,l) := block(l, map("=", uniquefreevars(f), l), psubst(%%, f), psubst([1=true,0=false],%%), ev(%%, nouns));
+
+varassign(f,l) := map("=", uniquefreevars(f), l);
+
+SAT(f) := map(lambda([u], varassign(f,u)), disjoin(false, union(map(lambda([u], if satFO(f, u) then u), cartprod(create_graph(2,[]), arity(f))))));
+
+r_ball(a,r,g) := (if r = 0 then (if integerp(a) then {a} else a) else r_ball(flatten(adjoin(a,map(lambda([u],setify(neighbors(u,g))),flatten({a})))),r-1,g));
+
+rl_ball(a,r,g) := flatten(setify(map(lambda([u],r_ball(u,r,g)),a)));
+
+r_nbhd(a,r,g) := induced_subgraph(L(rl_ball(a,r,g)),g);
+
+vertex_split(e, g) := (add_vertex(||g||, g), add_edges([[first(e), ||g|| - 1], [||g|| - 1, last(e)]], g), remove_edge(e, g));
