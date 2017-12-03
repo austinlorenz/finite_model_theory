@@ -13,9 +13,9 @@ To test whether a given graph is a model of a given first order formula, load th
 
 (%i) batch(MaximaLogic);
 
-and assign the graph in question to the global variable G.  The first order formula which defines the completeness query is
+and assign the graph in question to the global variable G.  The first order formula ψ which defines the completeness query is
 
-"for all x and for all y, x != y implies E(x,y)"
+ψ ≡ ∀x∀y(x≠y→E(x,y))
 
 that is, every pair of vertices which are not equal are connected by an edge of the graph.
 
@@ -46,8 +46,10 @@ We now set G to a graph which is not complete, and test again:
 2) evaluate non-Boolean queries on graphs
 
 To evaluate non-Boolean queries on graphs, use the LFP function.   Suppose we wish to define a query which returns all vertices of degree two or greater.  The first order formula defining this query is
-ϕ(x)≡∃y∃z(E(x,y)∧E(x,z)∧y≠z)
-  This reads "There exist vertices y and z such that there's an edge between x and y and an edge between x and z, and y and z are not the same vertices."  Note that x is not quantified--it is a free variable in the formula, and m-ary query  Q defined by ϕ(x) returns the set of a∈|G| such that G⊨ϕ(a). 
+
+ϕ(x) ≡ ∃y∃z(E(x,y)∧E(x,z)∧y≠z)
+
+This reads "There exist vertices y and z such that there's an edge between x and y and an edge between x and z, and y and z are not the same vertices."  Note that x is not quantified--it is a free variable in the formula, and m-ary query  Q defined by ϕ(x) returns the set of a∈|G| such that G⊨ϕ(a). 
 
 We translate the formula to Maxima code,
 
