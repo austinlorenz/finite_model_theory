@@ -56,3 +56,5 @@ We translate the formula to Maxima code,
 (%i132) phi : '(exz(y, exz(z, E(x,y) and E(x,z) and y!=z)));
 
 (%o132)        exz(y, exz(z, E(x, y) and E(x, z) and (y != z)))
+
+To return the tuples of some graph which satisfy a formula with free variables, use the function LFP.
