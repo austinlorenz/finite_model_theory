@@ -58,3 +58,7 @@ Note that the variable x occurs free in the formula.  To return the tuples of so
     (%o)         exz(y, exz(z, E(x, y) and E(x, z) and (y != z)))
     (%i) LFP(B,phi);
     (%o)        {[0], [1], [2], [3], [4], [5], [6], [7], [8], [9]}
+
+3) compute least and simultaneous fixed points of first order formulae on graphs
+
+4) play Ehrenfeucht–Fraïssé games on graphs.
