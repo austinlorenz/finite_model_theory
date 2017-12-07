@@ -17,7 +17,7 @@ and assign the graph in question to the global variable G.  The first order form
 
   	ψ ≡ ∀x∀y(x≠y→E(x,y))
 
-that is, every pair of vertices which are not equal are connected by an edge of the graph.
+that is, every pair of vertices which are not equal is connected by an edge of the graph.
 
 To quantify, use 'fa' for universal and 'exz' for existential.  The maxima translation of the above formula is
 
@@ -43,7 +43,7 @@ To evaluate non-Boolean queries on graphs, use the LFP function.   Suppose we wi
 
     ϕ(x) ≡ ∃y∃z(E(x,y)∧E(x,z)∧y≠z)
 
-This reads "There exist vertices y and z such that there's an edge between x and y and an edge between x and z, and y and z are not the same vertices."  Note that x is not quantified--it is a free variable in the formula, and m-ary query  Q defined by ϕ(x) returns the set of a∈|G| such that G⊨ϕ(a). 
+This reads "There exist vertices y and z such that there's an edge between x and y and an edge between x and z, and y and z are not the same vertices."  Note that x is not quantified--it is a free variable in the formula, and the m-ary query Q defined by ϕ(x) returns the set of a∈|G| such that G⊨ϕ(a). 
 
 We translate the formula to Maxima code,
 
